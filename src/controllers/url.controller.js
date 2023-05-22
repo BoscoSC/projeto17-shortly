@@ -59,8 +59,8 @@ export async function redirectToUrl(req, res) {
     }
 
     await db.query(
-      `UPDATE shortens SET "visitCount" = "visitCount" + 1 WHERE id = $1`,
-      [result.rows[0].id]
+      `UPDATE shortens SET "visitCount" = "visitCount" + 1 WHERE "shortUrl" = $1`,
+      [shortUrl]
     );
 
     res.redirect(result.rows[0].url);

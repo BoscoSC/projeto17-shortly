@@ -42,7 +42,7 @@ export async function login(req, res) {
       email,
     ]);
 
-    if (!rows) {
+    if (rows.length === 0) {
       res.sendStatus(401);
       return;
     }
