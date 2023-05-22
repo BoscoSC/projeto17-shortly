@@ -31,12 +31,14 @@ export async function userInfo(req, res) {
       };
     });
 
-    res.send({
+    const body = {
       id: user.id,
       name: user.name,
       visitCount: allVisits.rows[0].sum,
       shortenedUrls,
-    });
+    };
+
+    res.send(body);
   } catch (err) {
     res.status(500).send(err.message);
   }
