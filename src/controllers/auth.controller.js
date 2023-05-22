@@ -51,12 +51,10 @@ export async function login(req, res) {
     if (correctPassword) {
       const token = uuid();
 
-      await db.query(
-        `
-      INSERT INTO sessions (token, "userId") VALUES ($1, $2)
-      `,
-        [token, rows[0].id]
-      );
+      await db.query(`INSERT INTO sessions (token, "userId") VALUES ($1, $2)`, [
+        token,
+        rows[0].id,
+      ]);
 
       res.send({ token });
       return;
