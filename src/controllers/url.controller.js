@@ -68,3 +68,28 @@ export async function redirectToUrl(req, res) {
     res.status(500).send(err.message);
   }
 }
+
+export async function deleteUrl(req, res) {
+  const { id } = req.params;
+  const { user } = res.locals;
+
+  try {
+    const result = await db.query(`SELECT * FROM shortens WHERE id = $1`, [id]);
+
+    if (result.rowCount === 0) {
+      res.sendStatus(404);
+      return;
+    }
+
+    if (result.rows[0].userId !== user.id) {
+      res.sendStatus(401);
+      return;
+    }
+
+    await db.query(`DELETE FROM shortens WHERE id = $1`, [id]);
+
+    res.sendStatus(204);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+}
