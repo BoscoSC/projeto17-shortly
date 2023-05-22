@@ -43,3 +43,22 @@ export async function userInfo(req, res) {
     res.status(500).send(err.message);
   }
 }
+
+export async function ranking(req, res) {
+  try {
+    const results = await db.query(`
+      SELECT users.id, users.name,
+      COUNT (shortens.id) as "linksCount",
+      SUM (shortens."visitCount") as "visitCount"
+      FROM users
+      LEFT JOIN shortens ON shortens."userId" = users.id
+      GROUP BY users.id
+      ORDER BY "visitCount" DESC
+      LIMIT 10
+    `);
+
+    res.send(results.rows);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+}
