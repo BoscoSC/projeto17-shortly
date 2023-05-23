@@ -5,7 +5,7 @@ import {
   getShortUrlsByShortUrl,
   insertShortUrl,
   updateVisitCount,
-} from "../repositories/shortens.repository";
+} from "../repositories/shortens.repository.js";
 
 export async function shorten(req, res) {
   const { url } = req.body;
