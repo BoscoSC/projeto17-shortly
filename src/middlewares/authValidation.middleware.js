@@ -1,4 +1,5 @@
-import { db } from "../configs/database.connection.js";
+import { getSessionByToken } from "../repositories/auth.repository.js";
+import { getUserById } from "../repositories/user.repository.js";
 
 export async function authValidate(req, res, next) {
   const headers = req.headers.authorization;
@@ -10,22 +11,16 @@ export async function authValidate(req, res, next) {
   }
 
   try {
-    const { rows } = await db.query(
-      `
-    SELECT * FROM sessions WHERE token = $1`,
-      [token]
-    );
+    const { rows } = await getSessionByToken(token);
 
     if (!rows[0]) {
       res.sendStatus(401);
       return;
     }
 
-    const { rows: users } = await db.query(
-      `
-    SELECT * FROM users WHERE id = $1`,
-      [rows[0].userId]
-    );
+    const userId = rows[0].userId;
+
+    const { rows: users } = await getUserById(userId);
 
     if (!users[0]) {
       res.sendStatus(401);

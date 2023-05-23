@@ -1,26 +1,16 @@
-import { db } from "../configs/database.connection.js";
+import {
+  getShortUrlsByUserId,
+  getSumVisitCount,
+} from "../repositories/shortens.repository.js";
+import { getRanking } from "../repositories/user.repository.js";
 
 export async function userInfo(req, res) {
   const user = res.locals.user;
 
   try {
-    const allVisits = await db.query(
-      `
-      SELECT SUM(shortens."visitCount")
-      FROM shortens
-      WHERE "userId" = $1
-    `,
-      [user.id]
-    );
+    const allVisits = await getSumVisitCount(user.id);
 
-    const userUrls = await db.query(
-      `
-      SELECT *
-      FROM shortens
-      WHERE "userId" = $1
-    `,
-      [user.id]
-    );
+    const userUrls = await getShortUrlsByUserId(user.id);
 
     const shortenedUrls = userUrls.rows.map((item) => {
       return {
@@ -46,16 +36,7 @@ export async function userInfo(req, res) {
 
 export async function ranking(req, res) {
   try {
-    const results = await db.query(`
-      SELECT users.id, users.name,
-      COUNT (shortens.id) as "linksCount",
-      SUM (shortens."visitCount") as "visitCount"
-      FROM users
-      LEFT JOIN shortens ON shortens."userId" = users.id
-      GROUP BY users.id
-      ORDER BY "visitCount" DESC
-      LIMIT 10
-    `);
+    const results = await getRanking();
 
     res.send(results.rows);
   } catch (err) {

@@ -1,5 +1,11 @@
 import { nanoid } from "nanoid";
-import { db } from "../configs/database.connection.js";
+import {
+  deleteShortenById,
+  getShortUrlsById,
+  getShortUrlsByShortUrl,
+  insertShortUrl,
+  updateVisitCount,
+} from "../repositories/shortens.repository";
 
 export async function shorten(req, res) {
   const { url } = req.body;
@@ -8,10 +14,7 @@ export async function shorten(req, res) {
   const shortened = nanoid(10);
 
   try {
-    const response = await db.query(
-      `INSERT INTO shortens (url, "shortUrl", "userId") VALUES ($1, $2, $3) RETURNING id`,
-      [url, shortened, id]
-    );
+    const response = await insertShortUrl(url, shortened, id);
 
     const result = { id: response.rows[0].id, shortUrl: shortened };
 
@@ -25,7 +28,7 @@ export async function urlById(req, res) {
   const { id } = req.params;
 
   try {
-    const result = await db.query(`SELECT * FROM shortens WHERE id = $1`, [id]);
+    const result = await getShortUrlsById(id);
 
     if (result.rowCount === 0) {
       res.sendStatus(404);
@@ -48,20 +51,14 @@ export async function redirectToUrl(req, res) {
   const { shortUrl } = req.params;
 
   try {
-    const result = await db.query(
-      `SELECT * FROM shortens WHERE "shortUrl" = $1`,
-      [shortUrl]
-    );
+    const result = await getShortUrlsByShortUrl(shortUrl);
 
     if (result.rowCount === 0) {
       res.sendStatus(404);
       return;
     }
 
-    await db.query(
-      `UPDATE shortens SET "visitCount" = "visitCount" + 1 WHERE "shortUrl" = $1`,
-      [shortUrl]
-    );
+    await updateVisitCount(shortUrl);
 
     res.redirect(result.rows[0].url);
   } catch (err) {
@@ -74,7 +71,7 @@ export async function deleteUrl(req, res) {
   const { user } = res.locals;
 
   try {
-    const result = await db.query(`SELECT * FROM shortens WHERE id = $1`, [id]);
+    const result = await getShortUrlsById(id);
 
     if (result.rowCount === 0) {
       res.sendStatus(404);
@@ -86,7 +83,7 @@ export async function deleteUrl(req, res) {
       return;
     }
 
-    await db.query(`DELETE FROM shortens WHERE id = $1`, [id]);
+    await deleteShortenById(id);
 
     res.sendStatus(204);
   } catch (err) {
